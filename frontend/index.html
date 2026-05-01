@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Task Manager — Sign In</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-page">
+    <!-- Brand Side -->
+    <div class="auth-brand">
+      <div class="brand-logo">
+        <div class="brand-logo-icon">🗂️</div>
+        <span class="brand-logo-text">TaskFlow</span>
+      </div>
+      <h1 class="brand-heading">Manage tasks.<br><span>Ship faster.</span></h1>
+      <p class="brand-subtext">
+        A powerful team task manager with role-based access, and real-time project tracking.
+      </p>
+      <div class="brand-features">
+        <div class="brand-feature"><div class="brand-feature-dot"></div> Role-based access: Admin &amp; Member</div>
+        <div class="brand-feature"><div class="brand-feature-dot"></div> Project &amp; task analytics</div>
+        <div class="brand-feature"><div class="brand-feature-dot"></div> Priority levels &amp; due date tracking</div>
+      </div>
+    </div>
+
+    <!-- Form Side -->
+    <div class="auth-form-side">
+      <div class="auth-form-container">
+        <h2 class="auth-form-title" id="form-title">Welcome back</h2>
+        <p class="auth-form-subtitle" id="form-subtitle">Sign in to your account to continue</p>
+
+        <div class="auth-toggle">
+          <button class="auth-toggle-btn active" id="btn-login" onclick="switchTab('login')">Sign In</button>
+          <button class="auth-toggle-btn" id="btn-register" onclick="switchTab('register')">Sign Up</button>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-control" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary btn-lg" id="login-btn" onclick="handleLogin()">
+            Sign In
+          </button>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="hidden">
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="Jane Smith" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="reg-password">Password</label>
+              <input type="password" id="reg-password" class="form-control" placeholder="Min. 6 characters" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-role">Role</label>
+              <select id="reg-role" class="form-control">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg" id="register-btn" onclick="handleRegister()">
+            Create Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script>
+    // Redirect if already logged in
+    redirectIfLoggedIn();
+
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('btn-login').classList.toggle('active', isLogin);
+      document.getElementById('btn-register').classList.toggle('active', !isLogin);
+      document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+      document.getElementById('register-form').classList.toggle('hidden', isLogin);
+      document.getElementById('form-title').textContent = isLogin ? 'Welcome back' : 'Create your account';
+      document.getElementById('form-subtitle').textContent = isLogin
+        ? 'Sign in to your account to continue'
+        : 'Get started with your team workspace';
+      document.getElementById('alert-container').innerHTML = '';
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const isLogin = !document.getElementById('login-form').classList.contains('hidden');
+        if (isLogin) handleLogin();
+        else handleRegister();
+      }
+    });
+
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-btn');
+
+      if (!email || !password) {
+        return showAlert('alert-container', 'Please enter your email and password.');
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Signing in...';
+
+      try {
+        const res = await login(email, password);
+        saveToken(res.data.token);
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        showAlert('alert-container', err.message);
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    }
+
+    async function handleRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const role = document.getElementById('reg-role').value;
+      const btn = document.getElementById('register-btn');
+
+      if (!name || !email || !password) {
+        return showAlert('alert-container', 'Please fill in all required fields.');
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Creating account...';
+
+      try {
+        const res = await register(name, email, password, role);
+        saveToken(res.data.token);
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        showAlert('alert-container', err.message);
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+  </script>
+</body>
+</html>

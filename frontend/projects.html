@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects — TaskFlow</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">🗂️</div>
+          <span class="sidebar-logo-text">TaskFlow</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a href="/dashboard.html" class="nav-item"><span class="nav-item-icon">📊</span> Dashboard</a>
+        <a href="/projects.html" class="nav-item active"><span class="nav-item-icon">📁</span> Projects</a>
+        <a href="/tasks.html" class="nav-item"><span class="nav-item-icon">✅</span> Tasks</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="sidebar-avatar">?</div>
+          <div class="user-details">
+            <div class="user-name" id="sidebar-name">Loading...</div>
+            <div class="user-role-label" id="sidebar-role">—</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;color:#94a3b8;font-size:0.85rem;" onclick="logout()">
+          <span>🚪</span> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="topbar-title">Projects</div>
+          <div class="topbar-subtitle">Manage your team projects</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary admin-only hidden" onclick="openCreateModal()">+ New Project</button>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <div id="alert-container"></div>
+        <div id="projects-container">
+          <div class="loading-overlay"><div class="spinner"></div> Loading projects...</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create Project Modal -->
+  <div class="modal-overlay" id="create-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">New Project</span>
+        <button class="modal-close" onclick="closeCreateModal()">X</button>
+      </div>
+      <div class="modal-body">
+        <div id="create-alert"></div>
+        <div class="form-group">
+          <label class="form-label">Project Name *</label>
+          <input type="text" id="project-name" class="form-control" placeholder="e.g. Website Redesign">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="project-desc" class="form-control" placeholder="What is this project about?"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+        <button class="btn btn-primary" id="create-btn" onclick="handleCreateProject()">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Detail Modal -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <div>
+          <span class="modal-title" id="detail-title">Project Details</span>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:3px;" id="detail-owner"></div>
+        </div>
+        <button class="modal-close" onclick="closeDetailModal()">X</button>
+      </div>
+      <div class="modal-body" id="detail-body">
+        <div class="loading-overlay"><div class="spinner"></div> Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/projects.js"></script>
+</body>
+</html>

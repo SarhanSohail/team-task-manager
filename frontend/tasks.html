@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks — TaskFlow</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">🗂️</div>
+          <span class="sidebar-logo-text">TaskFlow</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a href="/dashboard.html" class="nav-item"><span class="nav-item-icon">📊</span> Dashboard</a>
+        <a href="/projects.html" class="nav-item"><span class="nav-item-icon">📁</span> Projects</a>
+        <a href="/tasks.html" class="nav-item active"><span class="nav-item-icon">✅</span> Tasks</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="sidebar-avatar">?</div>
+          <div class="user-details">
+            <div class="user-name" id="sidebar-name">Loading...</div>
+            <div class="user-role-label" id="sidebar-role">—</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;color:#94a3b8;font-size:0.85rem;" onclick="logout()">
+          <span>🚪</span> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="topbar-title">Tasks</div>
+          <div class="topbar-subtitle">Kanban board view</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="openTaskModal()">+ New Task</button>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <div id="alert-container"></div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+          <span class="filter-label">Filter:</span>
+          <select id="filter-project" class="filter-select" onchange="applyFilters()">
+            <option value="">All Projects</option>
+          </select>
+          <select id="filter-priority" class="filter-select" onchange="applyFilters()">
+            <option value="">All Priorities</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <div class="filter-divider"></div>
+          <label class="filter-checkbox-wrap">
+            <input type="checkbox" id="filter-mine" onchange="applyFilters()"> Assigned to me
+          </label>
+          <div class="filter-divider"></div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="kanban-board" id="kanban-board">
+          <div class="kanban-column" id="col-todo" ondragover="onDragOver(event)" ondrop="onDrop(event,'todo')" ondragleave="onDragLeave(event)">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title"><div class="kanban-dot kanban-dot-todo"></div> To Do</div>
+              <span class="kanban-count" id="count-todo">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-todo"></div>
+          </div>
+          <div class="kanban-column" id="col-in_progress" ondragover="onDragOver(event)" ondrop="onDrop(event,'in_progress')" ondragleave="onDragLeave(event)">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title"><div class="kanban-dot kanban-dot-progress"></div> In Progress</div>
+              <span class="kanban-count" id="count-in_progress">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-in_progress"></div>
+          </div>
+          <div class="kanban-column" id="col-done" ondragover="onDragOver(event)" ondrop="onDrop(event,'done')" ondragleave="onDragLeave(event)">
+            <div class="kanban-column-header">
+              <div class="kanban-column-title"><div class="kanban-dot kanban-dot-done"></div> Done</div>
+              <span class="kanban-count" id="count-done">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-done"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Task Modal (Create / Edit) -->
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="task-modal-title">New Task</span>
+        <button class="modal-close" onclick="closeTaskModal()">X</button>
+      </div>
+      <div class="modal-body">
+        <div id="task-alert"></div>
+        <input type="hidden" id="task-id">
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input type="text" id="task-title" class="form-control" placeholder="What needs to be done?">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="task-desc" class="form-control" placeholder="Optional details..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Project *</label>
+            <select id="task-project" class="form-control" onchange="loadProjectMembers()"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign To</label>
+            <select id="task-assignee" class="form-control"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select id="task-priority" class="form-control">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="task-status" class="form-control">
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input type="date" id="task-due" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm hidden" id="delete-task-btn" onclick="handleDeleteTask()">Delete</button>
+        <button class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+        <button class="btn btn-primary" id="save-task-btn" onclick="handleSaveTask()">Create Task</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/tasks.js"></script>
+</body>
+</html>

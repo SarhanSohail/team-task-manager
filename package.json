@@ -1,0 +1,27 @@
+{
+  "name": "team-task-manager",
+  "version": "1.0.0",
+  "description": "A production-ready Team Task Manager web application with role-based access control",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["task-manager", "team", "project-management"],
+  "author": "",
+  "license": "MIT"
+}

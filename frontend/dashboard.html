@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — TaskFlow</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">🗂️</div>
+          <span class="sidebar-logo-text">TaskFlow</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Navigation</div>
+        <a href="/dashboard.html" class="nav-item active">
+          <span class="nav-item-icon">📊</span> Dashboard
+        </a>
+        <a href="/projects.html" class="nav-item">
+          <span class="nav-item-icon">📁</span> Projects
+        </a>
+        <a href="/tasks.html" class="nav-item">
+          <span class="nav-item-icon">✅</span> Tasks
+        </a>
+        <div class="nav-section-label admin-only hidden">Admin</div>
+        <a href="#" class="nav-item admin-only hidden" id="nav-users" onclick="openUsersPanel()">
+          <span class="nav-item-icon">👥</span> Manage Users
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="sidebar-avatar">?</div>
+          <div class="user-details">
+            <div class="user-name" id="sidebar-name">Loading...</div>
+            <div class="user-role-label" id="sidebar-role">—</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;color:#94a3b8;font-size:0.85rem;" onclick="logout()">
+          <span>🚪</span> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="topbar-title">Dashboard</div>
+          <div class="topbar-subtitle" id="topbar-greeting">Good morning!</div>
+        </div>
+        <div class="topbar-actions">
+          <span class="badge" id="topbar-role-badge">—</span>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon indigo">📋</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-label">Total Tasks</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon blue">⚡</div>
+            <div class="stat-value" id="stat-progress">—</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon green">✅</div>
+            <div class="stat-value" id="stat-done">—</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon red">🔴</div>
+            <div class="stat-value" id="stat-overdue">—</div>
+            <div class="stat-label">Overdue</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Task Status</div>
+                <div class="card-subtitle">Breakdown by status</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Tasks per Project</div>
+                <div class="card-subtitle">Distribution across projects</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="chart-container" style="height:260px;">
+                <canvas id="projectChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recent Tasks</div>
+              <div class="card-subtitle">Your latest task activity</div>
+            </div>
+            <a href="/tasks.html" class="btn btn-secondary btn-sm">View All →</a>
+          </div>
+          <div id="recent-tasks-container">
+            <div class="loading-overlay"><div class="spinner"></div> Loading tasks...</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Users Modal (Admin only) -->
+  <div class="modal-overlay" id="users-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <span class="modal-title">👥 Manage Users</span>
+        <button class="modal-close" onclick="closeUsersPanel()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="users-list-container">
+          <div class="loading-overlay"><div class="spinner"></div> Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
