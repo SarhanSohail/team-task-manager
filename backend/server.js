@@ -6,10 +6,6 @@ const { testConnection } = require('./config/db');
 
 const app = express();
 
-const notificationRoutes = require('./routes/notifications');
-// existing routes ke saath:
-app.use('/api/notifications', notificationRoutes);
-
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',

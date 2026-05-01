@@ -1,5 +1,4 @@
 const { pool } = require('../config/db');
-const { pushNotification } = require('./notificationController');
 
 const taskBaseQuery = `
   SELECT t.*,
@@ -19,6 +18,8 @@ const getTasks = async (req, res) => {
     let conditions = [];
     let params = [];
 
+    // Non-admins can only see tasks from their projects
+    // Non-admins can only see tasks from their projects OR assigned to them
     if (req.user.role !== 'admin') {
       conditions.push(`(
         t.project_id IN (
@@ -74,6 +75,7 @@ const createTask = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Project ID is required.' });
     }
 
+    // Check project exists and user has access
     const [projects] = await pool.query('SELECT * FROM projects WHERE id = ?', [project_id]);
     if (projects.length === 0) {
       return res.status(404).json({ success: false, message: 'Project not found.' });
@@ -100,16 +102,6 @@ const createTask = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [title.trim(), description || null, project_id, assigned_to || null, req.user.id, taskStatus, taskPriority, due_date || null]
     );
-
-    // Notify assignee if different from creator
-    if (assigned_to && assigned_to !== req.user.id) {
-      await pushNotification(
-        assigned_to,
-        `New task assigned to you: "${title.trim()}"`,
-        'task_assigned',
-        result.insertId
-      );
-    }
 
     const [tasks] = await pool.query(`${taskBaseQuery} WHERE t.id = ?`, [result.insertId]);
     res.status(201).json({ success: true, data: tasks[0] });
@@ -170,16 +162,6 @@ const updateTask = async (req, res) => {
       `UPDATE tasks SET title=?, description=?, project_id=?, assigned_to=?, status=?, priority=?, due_date=? WHERE id=?`,
       [newTitle, newDescription, newProjectId, newAssignedTo, newStatus, newPriority, newDueDate, id]
     );
-
-    // Notify new assignee if changed
-    if (newAssignedTo && newAssignedTo !== req.user.id && newAssignedTo !== task.assigned_to) {
-      await pushNotification(
-        newAssignedTo,
-        `Task assigned to you: "${newTitle}"`,
-        'task_assigned',
-        parseInt(id)
-      );
-    }
 
     const [updated] = await pool.query(`${taskBaseQuery} WHERE t.id = ?`, [id]);
     res.json({ success: true, data: updated[0] });
