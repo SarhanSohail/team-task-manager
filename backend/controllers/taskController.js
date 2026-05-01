@@ -19,12 +19,16 @@ const getTasks = async (req, res) => {
     let params = [];
 
     // Non-admins can only see tasks from their projects
+    // Non-admins can only see tasks from their projects OR assigned to them
     if (req.user.role !== 'admin') {
-      conditions.push(`(t.project_id IN (
-        SELECT project_id FROM project_members WHERE user_id = ?
-        UNION SELECT id FROM projects WHERE owner_id = ?
-      ))`);
-      params.push(req.user.id, req.user.id);
+      conditions.push(`(
+        t.project_id IN (
+          SELECT project_id FROM project_members WHERE user_id = ?
+          UNION SELECT id FROM projects WHERE owner_id = ?
+        )
+        OR t.assigned_to = ?
+      )`);
+      params.push(req.user.id, req.user.id, req.user.id);
     }
 
     if (project) {
