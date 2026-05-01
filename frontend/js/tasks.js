@@ -175,6 +175,7 @@ async function openTaskModal(task = null) {
     allProjects.map(p => `<option value="${p.id}" ${task && task.project_id == p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
 
   // Load members for selected project
+  delete projectMembersCache['all_users'];
   await loadProjectMembers();
 
   if (task) {
@@ -199,11 +200,24 @@ async function loadProjectMembers() {
   }
 
   try {
-    if (!projectMembersCache[projectId]) {
-      const res = await getProject(projectId);
-      projectMembersCache[projectId] = res.data.members;
+    let members = [];
+
+    if (isAdmin()) {
+      // Admin ke liye saare users dikhao
+      if (!projectMembersCache['all_users']) {
+        const res = await getUsers();
+        projectMembersCache['all_users'] = res.data;
+      }
+      members = projectMembersCache['all_users'];
+    } else {
+      // Normal member ke liye sirf project members
+      if (!projectMembersCache[projectId]) {
+        const res = await getProject(projectId);
+        projectMembersCache[projectId] = res.data.members;
+      }
+      members = projectMembersCache[projectId];
     }
-    const members = projectMembersCache[projectId];
+
     assigneeSel.innerHTML = '<option value="">Unassigned</option>' +
       members.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
   } catch {
