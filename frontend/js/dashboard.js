@@ -28,7 +28,6 @@ async function loadDashboard() {
     const tasks = tasksRes.data;
     const projects = projectsRes.data;
 
-    // Stats
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const overdueCount = tasks.filter(t => t.due_date && t.status !== 'done' && new Date(t.due_date) < today).length;
@@ -38,11 +37,8 @@ async function loadDashboard() {
     document.getElementById('stat-done').textContent = tasks.filter(t => t.status === 'done').length;
     document.getElementById('stat-overdue').textContent = overdueCount;
 
-    // Charts
     renderStatusChart(tasks);
     renderProjectChart(tasks, projects);
-
-    // Recent tasks table
     renderRecentTasks(tasks.slice(0, 10), today);
   } catch (err) {
     console.error('Dashboard load error:', err);
@@ -152,9 +148,7 @@ function renderRecentTasks(tasks, today) {
     <div class="table-container">
       <table>
         <thead>
-          <tr>
-            <th>Task</th><th>Project</th><th>Assignee</th><th>Status</th><th>Due Date</th>
-          </tr>
+          <tr><th>Task</th><th>Project</th><th>Assignee</th><th>Status</th><th>Due Date</th></tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
@@ -230,11 +224,95 @@ async function changeUserRole(userId, role) {
   }
 }
 
-// Close modal on overlay click
 document.getElementById('users-modal').addEventListener('click', function(e) {
   if (e.target === this) closeUsersPanel();
 });
 
+// ===== NOTIFICATIONS =====
+
+// SSE se aaya naya notification — panel mein add karo
+function addNotificationToPanel(notif) {
+  const list = document.getElementById('notif-list');
+  // Agar "No notifications" placeholder hai to hatao
+  const placeholder = list.querySelector('p');
+  if (placeholder) placeholder.remove();
+
+  const div = document.createElement('div');
+  div.style.cssText = 'padding:10px 16px; border-bottom:1px solid #f3f4f6; background:#eff6ff;';
+  div.innerHTML = `
+    <p style="margin:0; font-size:13px">${escapeHtml(notif.message)}</p>
+    <p style="margin:4px 0 0; font-size:11px; color:#9ca3af">${new Date(notif.created_at).toLocaleString()}</p>
+  `;
+  list.prepend(div); // Sabse upar add karo
+}
+
+function updateBadge(increment) {
+  const badge = document.getElementById('notif-badge');
+  const current = parseInt(badge.textContent) || 0;
+  badge.textContent = current + increment;
+  badge.style.display = 'flex';
+}
+
+function toggleNotifications() {
+  const panel = document.getElementById('notif-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block') loadNotifications();
+}
+
+async function loadNotifications() {
+  try {
+    const res = await fetch('/api/notifications', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    const { data } = await res.json();
+    const unread = data.filter(n => !n.is_read).length;
+
+    const badge = document.getElementById('notif-badge');
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? 'flex' : 'none';
+
+    document.getElementById('notif-list').innerHTML = data.length > 0
+      ? data.map(n => `
+          <div style="padding:10px 16px; border-bottom:1px solid #f3f4f6; background:${n.is_read ? 'white' : '#eff6ff'}">
+            <p style="margin:0; font-size:13px">${escapeHtml(n.message)}</p>
+            <p style="margin:4px 0 0; font-size:11px; color:#9ca3af">${new Date(n.created_at).toLocaleString()}</p>
+          </div>`).join('')
+      : '<p style="padding:16px; color:#9ca3af; font-size:13px; margin:0;">No notifications</p>';
+  } catch (err) {
+    console.error('Load notifications error:', err);
+  }
+}
+
+async function markAllRead() {
+  try {
+    await fetch('/api/notifications/read-all', {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    loadNotifications();
+  } catch (err) {
+    console.error('Mark all read error:', err);
+  }
+}
+
+function connectSSE() {
+  const token = localStorage.getItem('token');
+  const evtSource = new EventSource(`/api/notifications/stream?token=${token}`);
+
+  evtSource.addEventListener('notification', (e) => {
+    const notif = JSON.parse(e.data);
+    addNotificationToPanel(notif); // Ab ye defined hai
+    updateBadge(1);
+  });
+
+  evtSource.onerror = () => {
+    evtSource.close();
+    setTimeout(connectSSE, 5000);
+  };
+}
+
 // ===== BOOT =====
 initUserUI();
 loadDashboard();
+connectSSE();
+loadNotifications();

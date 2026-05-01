@@ -54,8 +54,36 @@
           <div class="topbar-title">Dashboard</div>
           <div class="topbar-subtitle" id="topbar-greeting">Good morning!</div>
         </div>
-        <div class="topbar-actions">
+        <div class="topbar-actions" style="display:flex; align-items:center; gap:16px;">
           <span class="badge" id="topbar-role-badge">—</span>
+
+          <!-- Notification Bell (topbar mein, sahi jagah) -->
+          <div style="position:relative;">
+            <button onclick="toggleNotifications()" style="background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:4px;" title="Notifications">
+              🔔
+            </button>
+            <span id="notif-badge" style="
+              display:none; position:absolute; top:-4px; right:-4px;
+              background:#ef4444; color:white; border-radius:50%;
+              width:18px; height:18px; font-size:11px;
+              align-items:center; justify-content:center;
+            ">0</span>
+
+            <!-- Notification Panel -->
+            <div id="notif-panel" style="
+              display:none; position:absolute; right:0; top:calc(100% + 8px);
+              width:300px; background:white; border:1px solid #e5e7eb;
+              border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.1);
+              z-index:1000; max-height:360px; overflow-y:auto;
+            ">
+              <div style="padding:12px 16px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:14px;">Notifications</strong>
+                <button onclick="markAllRead()" style="font-size:12px; color:#6b7280; background:none; border:none; cursor:pointer;">Mark all read</button>
+              </div>
+              <div id="notif-list" style="padding:8px 0;"></div>
+            </div>
+          </div>
+
         </div>
       </header>
 
